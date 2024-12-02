@@ -133,9 +133,7 @@ pub struct ScriptType {
 }
 
 #[binrw::parser(reader, endian)]
-pub fn path_id_parser(flags: (bool,)) -> BinResult<i64> {
-    let (big_id_enabled,) = flags;
-
+pub fn path_id_parser(big_id_enabled: bool) -> BinResult<i64> {
     if !big_id_enabled {
         return Ok(<i32>::read_options(reader, endian, ())? as i64);
     }
