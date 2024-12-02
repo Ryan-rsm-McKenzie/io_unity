@@ -37,7 +37,7 @@ pub struct Args {
     /// see https://github.com/DaZombieKiller/TypeTreeDumper
     /// aslo https://github.com/AssetRipper/TypeTreeDumps.
     /// File create by "tar -caf InfoJson.tar.zst InfoJson"
-    /// or "tar -c InfoJson | zstd --ultra -22 -o InfoJson.tar.zst"  
+    /// or "tar -c InfoJson | zstd --ultra -22 -o InfoJson.tar.zst"
     /// whitch can be less then 5MiB.
     /// contain file path like /InfoJson/x.x.x.json.
     #[arg(short, long)]
@@ -78,7 +78,6 @@ fn main() -> anyhow::Result<()> {
     let mut unity_asset_viewer = UnityAssetViewer::new();
     if let Some(bundle_dir) = args.bundle_dir {
         unity_asset_viewer.read_bundle_dir(&bundle_dir)?;
-
     }
     if let Some(data_dir) = args.data_dir {
         unity_asset_viewer.read_data_dir(data_dir)?;
@@ -162,7 +161,7 @@ fn main() -> anyhow::Result<()> {
             out_dir,
         } => {
             let gen_out_path = |container_name: &Option<&String>, name: &Result<String, _>, ext| {
-                let mut out_path_base = PathBuf::from(out_dir);
+                let out_path_base = PathBuf::from(out_dir);
                 let out_path = if let Some(container_name) = container_name {
                     if container_name.ends_with(ext) {
                         out_path_base.join(container_name)
@@ -175,7 +174,6 @@ fn main() -> anyhow::Result<()> {
                     } else {
                         "data".to_owned()
                     };
-                    let mut out_path = out_path_base.clone();
                     let mut f_out_file_name = out_file_name.clone();
                     let mut i = 0;
                     while out_path_base.join(f_out_file_name.clone() + ext).exists() {
