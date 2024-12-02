@@ -434,23 +434,22 @@ impl SerializedFile {
     }
 
     pub fn get_tt_object_by_path_id(&self, path_id: i64) -> Result<Option<TypeTreeObject>, Error> {
-        self.object_map
-            .get(&path_id)
-            .map(|obj| {
-                self.content
-                    .get_type_tree_object(
-                        &mut self.file_reader.borrow_mut(),
-                        obj,
-                        self.serialized_file_id,
-                        path_id,
-                    )
-                    .map_err(|err| Error::ObjectReadError {
-                        source: err.into(),
-                        data_offset: self.content.get_data_offset(),
-                        object_meta: obj.clone(),
-                    })
-            })
-            .transpose()
+        if let Some(obj) = self.object_map.get(&path_id) {
+            self.content
+                .get_type_tree_object(
+                    &mut self.file_reader.borrow_mut(),
+                    obj,
+                    self.serialized_file_id,
+                    path_id,
+                )
+                .map_err(|err| Error::ObjectReadError {
+                    source: err.into(),
+                    data_offset: self.content.get_data_offset(),
+                    object_meta: obj.clone(),
+                })
+        } else {
+            Ok(None)
+        }
     }
 
     pub fn get_externals(&self) -> Cow<Vec<FileIdentifier>> {
@@ -493,12 +492,12 @@ pub trait Serialized: fmt::Debug {
         obj: &Object,
         serialized_file_id: i64,
         path_id: i64,
-    ) -> Result<TypeTreeObject, Error> {
-        let class_args = if self.get_enable_type_tree() {
-            self.get_type_object_args_by_type_id(obj.type_id)
-        } else {
-            None
-        };
+    ) -> Result<Option<TypeTreeObject>, Error> {
+        if self.get_enable_type_tree() {
+            return Ok(None);
+        }
+
+        let class_args = self.get_type_object_args_by_type_id(obj.type_id);
 
         #[cfg(feature = "type-tree-json")]
         let class_args = class_args.or(get_type_object_args_by_version_class_id(
@@ -506,7 +505,9 @@ pub trait Serialized: fmt::Debug {
             obj.class,
         ));
 
-        let class_args = class_args.ok_or(Error::TypeTreeObjectBinReadArgsBuild)?;
+        let Some(class_args) = class_args else {
+            return Ok(None);
+        };
 
         let args = TypeTreeObjectBinReadArgs::new(serialized_file_id, path_id, class_args);
 
@@ -524,6 +525,6 @@ pub trait Serialized: fmt::Debug {
             reader.read_exact(&mut external_data)?;
             type_tree_object.external_data = Some(external_data);
         }
-        Ok(type_tree_object)
+        Ok(Some(type_tree_object))
     }
 }

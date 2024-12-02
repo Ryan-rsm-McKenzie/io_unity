@@ -112,35 +112,19 @@ fn main() -> anyhow::Result<()> {
                         // println!("\t{:?}", tt_o.get_value_by_path("/Base/m_Namespace"));
                         // println!("\t{:?}", tt_o.get_value_by_path("/Base/m_AssemblyName"));
                     } else if obj.class == ClassIDType::MonoBehaviour as i32 {
-                        let obj = sf
-                            .get_tt_object_by_path_id(*pathid)
-                            .map_err(|err| {
-                                let fs_path = unity_asset_viewer
-                                    .get_unity_fs_by_serialized_file(&sf)
-                                    .and_then(|fs| {
-                                        dump_unity_fs(fs);
-                                        fs.resource_search_path.clone()
-                                    });
-
-                                anyhow!(format!(
-                                    "error while read. fs_path : {:?} sf_path: {:?} error : {}",
-                                    fs_path, sf.resource_search_path, err
-                                ))
-                            })
-                            .unwrap()
-                            .unwrap();
-
-                        if let Ok(pptr_o) =
-                            TypeTreeObjectRef::try_cast_from(&obj.into(), "/Base/m_Script")
-                        {
-                            let script_pptr = PPtr::new(&pptr_o);
-                            if let Some(script) =
-                                script_pptr.get_type_tree_object_in_view(&unity_asset_viewer)?
+                        if let Some(obj) = sf.get_tt_object_by_path_id(*pathid).unwrap() {
+                            if let Ok(pptr_o) =
+                                TypeTreeObjectRef::try_cast_from(&obj.into(), "/Base/m_Script")
                             {
-                                if let Ok(class_name) =
-                                    String::try_cast_from(&script, "/Base/m_ClassName")
+                                let script_pptr = PPtr::new(&pptr_o);
+                                if let Some(script) =
+                                    script_pptr.get_type_tree_object_in_view(&unity_asset_viewer)?
                                 {
-                                    mono_behaviour_calss_types.insert(class_name);
+                                    if let Ok(class_name) =
+                                        String::try_cast_from(&script, "/Base/m_ClassName")
+                                    {
+                                        mono_behaviour_calss_types.insert(class_name);
+                                    }
                                 }
                             }
                         }
