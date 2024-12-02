@@ -123,12 +123,14 @@ pub struct SerializedType {
     pub class_id: i32,
     pub is_stripped_type: U8Bool,
     script_type_index: i16,
-    #[br(if(class_id == 114))]
+    #[br(if(class_id < 0 || class_id == 114 || class_id == 0x7C90B5B3 || script_type_index >= 0))]
     script_id: Option<[u8; 16]>,
     old_type_hash: [u8; 16],
     #[br(if(enable_type_tree))]
     pub type_tree: Option<TypeTree>,
+    #[br(if(enable_type_tree))]
     type_dependencies_count: i32,
+    #[br(if(enable_type_tree))]
     #[br(count = type_dependencies_count)]
     type_dependencies: Vec<u32>,
 }
@@ -140,7 +142,7 @@ pub struct SerializedRefType {
     class_id: i32,
     is_stripped_type: U8Bool,
     script_type_index: i16,
-    #[br(if(class_id == 114))]
+    #[br(if(class_id < 0 || class_id == 114 || class_id == 0x7C90B5B3 || script_type_index >= 0))]
     script_id: Option<[u8; 16]>,
     old_type_hash: [u8; 16],
     #[br(if(enable_type_tree))]
